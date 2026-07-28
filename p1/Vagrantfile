@@ -1,0 +1,25 @@
+# Vagrantfile
+
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+Vagrant.require_version ">= 1.3.5"
+Vagrant.configure("2") do |config|
+
+	# The settings within config.vm modify 
+	# the configuration of the machine that Vagrant manages.
+	config.vm.box = ''
+	config.vm.box_architecture = ''
+	config.vm.box_version = ''
+	config.vm.cloud_init = ''
+	config.vm.cloud_init_first_boot_only = true
+	config.vm.communicator = 'ssh'
+	config.vm.disk = ''
+	config.vm.guest = :linux
+	config.vm.hostname = ENV["USER"]
+	config.vm.network = ...
+	config.vm.post_up_message = 'HI'
+	config.vm.provider = ''
+	config.vm.provision = ...
+	config.vm.synced_folder ".", "/vagrant", disabled: true
+
+end
