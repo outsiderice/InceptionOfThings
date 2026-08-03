@@ -64,6 +64,7 @@ package_update: true
 package_upgrade: true
 packages:
 - tree
+- libvirt-daemon
 - vagrant
 allow_public_ssh_keys: true
 disable_root: true
@@ -153,7 +154,7 @@ case "$COMMAND" in
 	--launch) vm_launch ;;
 	--login) vm_login ;;
 	# --login [ssh | console]
-	--delete) vm_delete "$VM_NAME" ;;
+	--delete | --detroy) vm_delete "$VM_NAME" ;;
 	# --delete [--force]
 	*) vm_launch ;;
 	# *) Default to:
