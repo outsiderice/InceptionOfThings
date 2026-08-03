@@ -1,8 +1,0 @@
-#cloud-config
-users:
-  - name: debian
-    sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/bash
-    lock_passwd: true
-    ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCbZZHfVlk6ed42OXjdzc7XZdGfVKH1evRafIYjK7eDVXg0jlaij0vWzARNm9ymCmpNQ8KVI7YBOBwO2Ueaz/a4FjvY9cLiccemu7B0gHYeWbbIzeDBGl3TP45ZSdpiwI3jdxoi5vULyPWPHTkrd5+tta8Ou2Fb7t7FSUsL+HABLU6C3oShJDdi6b0QdKOeNLB3Uq1/Y31V/cFXaS+uLX3mybmG7p3PkgbQQiM5G24MCxrW+czmIAoMabk2jje9W16rfxDCG3gXWBDboNcsitKHO29IPwHz9OgSq3IIyAkdSVV455kggJQPKIRPSU5LjDdHlqwpWu/kioyQ3SRJ887hqsWy/tTEdal/MuPt8qjafk++rZEW/E5MekYlf2jEWc4bAAecGappDgoNTxXTMgwBX4PKMkJJv3LdtPXAZcn51tNLx8A15p+gbROJepe0xf4GGd9zEXSvX04CRK27pbbdy7QfAj8ieYWezCSUrynvVe4FOUWfK5WmMBH/lgUes6E=
