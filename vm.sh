@@ -7,6 +7,8 @@ AMI_URL="https://cloud.debian.org/images/cloud/trixie/latest/${AMI_VARIANT}"
 AMI_PATH="${HOME:?}/goinfre/inception-of-things"
 AMI_IMG="$AMI_PATH/$AMI_VARIANT"
 
+APT_CACHE_IMG="$AMI_PATH/apt-cache.qcow2"
+
 VIRSH_DEFAULT_CONNECT_URI="qemu:///session"
 LIBVIRT_DEFAULT_URI="qemu:///session"
 
@@ -88,6 +90,10 @@ disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
 ssh_deletekeys: true
 ssh_quiet_keygen: true
 timezone: $(timedatectl show | grep -i timezone | cut -d '=' -f 2)
+runcmd:
+  - usermod -aG libvirt,kvm $USER
+  - systemctl disable --now dnsmasq
+  - systemctl restart libvirt
 final_message: Wubba Lubba dub-dub!
 EOF
 cloud-init schema --config-file "$AMI_PATH/user-data.yaml" || exit 1
@@ -108,8 +114,6 @@ vm_install() {
 		--vcpus "$VM_VCPUS" \
 		--cpu "host-passthrough,cache.mode=passthrough" \
 		--disk "path=$VM_IMG,bus=virtio,cache=none,io=native,discard=unmap" \
-		--memorybacking "source.type=memfd,access.mode=shared" \
-		--filesystem "source=$(pwd),target=inception-of-things,driver.type=path" \
 		--cloud-init "user-data=$AMI_PATH/user-data.yaml,meta-data=$AMI_PATH/meta-data.yaml" \
 		--osinfo "debian13" \
 		--boot "uefi" \
@@ -117,6 +121,7 @@ vm_install() {
 		--import \
 		--graphics "none" \
 		--noautoconsole;
+	#--disk "path=$APT_CACHE_IMG,size=10,format=qcow2,bus=virtio,cache=none,io=native,discard=unmap" \
 	# NAT port forward
 	virsh \
 		qemu-monitor-command $VM_NAME \
