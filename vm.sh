@@ -34,7 +34,7 @@ vm_get_ami() {
 vm_generate_ssh() {
 	# Make sure a "$1" ssh-key exists.
 	# Argument is mandatory.
-	local KEYNAME="${1:+$CLOUDUSER_KEY}"
+	local KEYNAME="${CLOUDUSER_KEY}"
 	if ! test -d "$SSH_DIR"; then
 		mkdir -p "$SSH_DIR"
 	fi
@@ -91,6 +91,7 @@ vm_install() {
 		--ram "$VM_RAM" \
 		--vcpus "$VM_VCPUS" \
 		--disk "path=$VM_IMG,bus=virtio,cache=none,io=native,discard=unmap" \
+		--filesystem "$(pwd),/inception-of-things" \
 		--cloud-init "user-data=$AMI_PATH/user-data.yaml,meta-data=$AMI_PATH/meta-data.yaml" \
 		--osinfo debian13 # TODO: no hardcoded value #--osinfo "detect=on,require=off" \
 		--boot uefi \
