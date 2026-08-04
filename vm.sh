@@ -82,6 +82,7 @@ packages:
 - libvirt-clients
 - vagrant
 - vagrant-libvirt
+- nfs-kernel-server
 allow_public_ssh_keys: true
 disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
@@ -115,9 +116,7 @@ vm_install() {
 		--boot "uefi" \
 		--tpm "none" \
 		--import \
-		--graphics "none" \
-		--wait "-1" \
-		--noautoconsole;
+		--graphics "none";
 	# NAT port forward
 	virsh \
 		qemu-monitor-command $VM_NAME \

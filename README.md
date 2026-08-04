@@ -17,6 +17,22 @@ A lightweight wrapper to run k3s in docker.
 What is Argo CD?
 A declarative, GitOps continuous delivery tool for Kubernetes.
 
+### Setting up the environment
+We decided to use cloud-init to be able to easily deploy our host machine with our preferred configuration, and specially as a more lightweight than other vm providers.
+
+DELETEME:
+So now that environment is set up, removed the wait and the autoconsole removal for now, as it didnt work as intended.
+
+Next step is:
+- See if we can deploy a vm with a vagrantfile inside this host machine.
+which brings us to: write a vagrantfile which works with libvirt. (why is libvirt our choice?performance i think)
+Installed nfs-kernel-server for the more efficient filesystem used by vagrant.
+(see if i need to add vagrant-qemu too? i dont remember)
+
+- Let's try to install k3 now: looks simple enough but i need another look and then do it in a Vagrantfile
+
+Lastly, I can-t logout form the host machine now lol what happened there?
+END OF DELETEME
 ### Monitoring and testing
 How do these technologies fail? What should I watch and how?
 The 3 parts to this project are:
