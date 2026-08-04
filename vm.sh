@@ -110,7 +110,7 @@ vm_install() {
 		--disk "path=$VM_IMG,bus=virtio,cache=none,io=native,discard=unmap" \
 		--filesystem "$(pwd),/inception-of-things" \
 		--cloud-init "user-data=$AMI_PATH/user-data.yaml,meta-data=$AMI_PATH/meta-data.yaml" \
-		--osinfo debian13
+		--osinfo debian13 \
 		--boot uefi \
 		--tpm none \
 		--import \
