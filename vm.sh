@@ -108,13 +108,15 @@ vm_install() {
 		--vcpus "$VM_VCPUS" \
 		--cpu "host-passthrough,cache.mode=passthrough" \
 		--disk "path=$VM_IMG,bus=virtio,cache=none,io=native,discard=unmap" \
-		--filesystem "$(pwd),/inception-of-things" \
+		--memorybacking "source.type=memfd,access.mode=shared" \
+		--filesystem "source=$(pwd),target=inception-of-things,driver.type=path" \
 		--cloud-init "user-data=$AMI_PATH/user-data.yaml,meta-data=$AMI_PATH/meta-data.yaml" \
-		--osinfo debian13 \
-		--boot uefi \
-		--tpm none \
+		--osinfo "debian13" \
+		--boot "uefi" \
+		--tpm "none" \
 		--import \
-		--graphics none \
+		--graphics "none" \
+		--wait "-1" \
 		--noautoconsole;
 	# NAT port forward
 	virsh \
