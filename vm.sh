@@ -58,14 +58,29 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - $(cat .ssh/clouduser-key.pub)
+  - name: ${USER}dev
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: $USER
 ssh:
   emit_keys_to_console: false
+apt:
+  conf: |
+    APT::Install-Recommends "false";
+    APT::Install-Suggests "false";
 package_update: true
 package_upgrade: true
 packages:
 - tree
+- iptables
+- dnsmasq
+- bridge-utils
+- qemu-system-x86
+- qemu-utils
+- libvirt-daemon-system
+- libvirt-clients
 - vagrant
-- libvirt-daemon
 allow_public_ssh_keys: true
 disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
@@ -88,12 +103,13 @@ vm_install() {
 	# Provision and start the VM via virt-install
 	virt-install \
 		--name "$VM_NAME" \
-		--ram "$VM_RAM" \
+		--memory "$VM_RAM" \
 		--vcpus "$VM_VCPUS" \
+		--cpu "host-passthrough,cache.mode=passthrough" \
 		--disk "path=$VM_IMG,bus=virtio,cache=none,io=native,discard=unmap" \
 		--filesystem "$(pwd),/inception-of-things" \
 		--cloud-init "user-data=$AMI_PATH/user-data.yaml,meta-data=$AMI_PATH/meta-data.yaml" \
-		--osinfo debian13 # TODO: no hardcoded value #--osinfo "detect=on,require=off" \
+		--osinfo debian13
 		--boot uefi \
 		--tpm none \
 		--import \
