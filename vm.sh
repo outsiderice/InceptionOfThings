@@ -81,6 +81,7 @@ packages:
 - libvirt-daemon-system
 - libvirt-clients
 - vagrant
+- vagrant-libvirt
 allow_public_ssh_keys: true
 disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
