@@ -116,7 +116,6 @@ vm_install() {
 		--tpm "none" \
 		--import \
 		--graphics "none" \
-		--wait "-1" \
 		--noautoconsole;
 	# NAT port forward
 	virsh \
