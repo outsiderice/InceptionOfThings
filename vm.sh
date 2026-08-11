@@ -102,6 +102,11 @@ ssh_quiet_keygen: true
 runcmd:
   - usermod -aG libvirt,kvm ${USER}
   - vagrant plugin install vagrant-libvirt
+  - virsh net-destroy default
+  - virsh net-undefine default
+  - sed --in-place 's/192\.168/10\.0/g' /usr/share/libvirt/networks/default.xml
+  - virsh net-define /usr/share/libvirt/networks/default.xml
+  - virsh net-start default
 final_message: Wubba Lubba dub-dub!
 EOF
 
