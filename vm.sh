@@ -93,12 +93,14 @@ packages:
 - build-essential
 - pkgconf
 - vagrant
-
 allow_public_ssh_keys: true
 disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
 ssh_deletekeys: true
 ssh_quiet_keygen: true
+bootcmd:
+  - echo -e "[Unit]\nAfter=cloud-init.target" | sudo systemctl edit sshd.service --stdin
+  - systemctl daemon-reload
 runcmd:
   - usermod -aG libvirt,kvm ${USER}
   - vagrant plugin install vagrant-libvirt
