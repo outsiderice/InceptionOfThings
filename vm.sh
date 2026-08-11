@@ -69,27 +69,33 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: false
-    plain_text_passwd: ${USER}
+    plain_text_passwd: "root"
 ssh:
   emit_keys_to_console: false
 apt:
   conf: |
     APT::Install-Recommends "false";
     APT::Install-Suggests "false";
+  sources:
+    hashicorp:
+      source: "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main"
+      keyid: "security+packaging@hashicorp.com"
+      keyserver: "https://keyserver.ubuntu.com/"
+      filename: "/usr/share/keyrings/hashicorp-archive-keyring.gpg"
 package_update: true
 package_upgrade: true
 packages:
-- tree
-- iptables
-- dnsmasq
 - bridge-utils
 - qemu-system-x86
 - qemu-utils
 - libvirt-daemon-system
 - libvirt-clients
-- vagrant
-- vagrant-libvirt
+- libvirt-dev
 - nfs-kernel-server
+- build-essential
+- pkgconf
+- vagrant
+
 allow_public_ssh_keys: true
 disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
@@ -97,8 +103,7 @@ ssh_deletekeys: true
 ssh_quiet_keygen: true
 runcmd:
   - usermod -aG libvirt,kvm ${USER}
-  - systemctl disable --now dnsmasq
-  - systemctl restart libvirt
+  - vagrant plugin install vagrant-libvirt
 final_message: Wubba Lubba dub-dub!
 EOF
 
