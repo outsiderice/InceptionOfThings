@@ -78,10 +78,8 @@ apt:
     APT::Install-Suggests "false";
   sources:
     hashicorp:
-      source: "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main"
-      keyid: "security+packaging@hashicorp.com"
-      keyserver: "https://keyserver.ubuntu.com/"
-      filename: "/usr/share/keyrings/hashicorp-archive-keyring.gpg"
+      keyid: 798A EC65 4E5C 1542 8C8E  42EE AA16 FCBC A621 E701
+      source: 'deb [arch=$(dpkg --print-architecture) signed-by=\$KEY_FILE] https://apt.releases.hashicorp.com \$RELEASE main'
 package_update: true
 package_upgrade: true
 packages:
