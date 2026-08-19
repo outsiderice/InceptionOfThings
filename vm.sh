@@ -81,7 +81,7 @@ apt:
       keyid: 798A EC65 4E5C 1542 8C8E  42EE AA16 FCBC A621 E701
       source: 'deb [arch=$(dpkg --print-architecture) signed-by=\$KEY_FILE] https://apt.releases.hashicorp.com \$RELEASE main'
 package_update: true
-package_upgrade: true
+package_upgrade: false
 packages:
 - bridge-utils
 - qemu-system-x86
@@ -99,7 +99,7 @@ disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
 ssh_deletekeys: true
 ssh_quiet_keygen: true
 bootcmd:
-  - echo -e "[Unit]\nAfter=cloud-init.target" | sudo systemctl edit sshd.service --stdin
+  - printf "%s\n%s" "[Unit]" "After=cloud-init.target" | sudo systemctl edit sshd.service --stdin
   - systemctl daemon-reload
 runcmd:
   - usermod -aG libvirt,kvm ${USER}
@@ -124,7 +124,11 @@ vm__hostfwd() {
 	local DOMAIN=${1:-"$VM_NAME"};
 	local NAT_PORT="${2:-"2222"}";
 	local GUEST_PORT="${3:-"22"}";
+	local CURRENT_USERNET=$(virsh qemu-monitor-command --hmp --domain $DOMAIN --cmd info usernet | grep HOST_FORWARD);
+	local CURRENT_NAT_PORT=$(echo "$CURRENT_USERNET" | tr '[:blank:]' ' ' | tr -s ' ' | cut -d ' ' -f 5);
+	local CURRENT_GUEST_PORT=$(echo "$CURRENT_USERNET" | tr '[:blank:]' ' ' | tr -s ' ' | cut -d ' ' -f 7);
 	
+	test ${CURRENT_NAT_PORT:-0} -eq $NAT_PORT && test ${CURRENT_GUEST_PORT:-0} -eq $GUEST_PORT && return;
 	virsh qemu-monitor-command $DOMAIN \
 		--hmp \
 		--cmd "hostfwd_add ::${NAT_PORT}-:${GUEST_PORT}";
@@ -138,12 +142,19 @@ vm__clone_ami() {
 	qemu-img create -f qcow2 -F qcow2 -b "$AMI" "$DEST" "$SIZE";
 }
 
+vm__domain_isdefined() {
+	local DOMAIN=${1:-"$VM_NAME"};
+
+	virsh dominfo $VM_NAME || false;
+}
+
 vm_create() {
 	# Get AMI, provision, configure and start the VM via virt-install.
 	local DOMAIN=${1:-"$VM_NAME"};
 	local VM_VCPUS="4";
 	local VM_RAM="4096";
 	
+	vm__domain_isdefined $VM_NAME 2>/dev/null && exit;
 	vm__clone_ami "$(vm__get_ami)" "$VM_IMG" "16G";
 	vm__keygen "$DOMAIN";
 	vm__cloudinit;
@@ -166,10 +177,9 @@ vm_create() {
 vm_delete() {
 	local DOMAIN=${1:-"$VM_NAME"};
 
-	if test $(virsh list --all --name | grep -e $DOMAIN | wc -l) -ne 0; then
-		virsh destroy $DOMAIN
-		virsh undefine $DOMAIN --nvram
-	fi
+	vm__domain_isdefined $VM_NAME || exit;
+	virsh destroy $DOMAIN;
+	virsh undefine $DOMAIN --nvram;
 	if test -f "$VM_IMG"; then
 		rm -v "$VM_IMG"
 	fi
@@ -182,6 +192,8 @@ vm_ssh() {
 	local NAT_IP="$(virsh net-dumpxml default | sed -nE "s/.*<ip address='([^']+)'.*/\1/p")";
 	local NAT_PORT="2222";
 
+	vm__domain_isdefined $VM_NAME || exit;
+	vm__hostfwd "$VM_NAME" "2222" "22";
 	ssh -i "$KEY" -p ${NAT_PORT:-"22"} \
 		-o StrictHostKeyChecking=no \
 		-o UserKnownHostsFile=/dev/null \
@@ -191,6 +203,7 @@ vm_ssh() {
 vm_console() {
 	local DOMAIN=${1:-"$VM_NAME"};
 
+	vm__domain_isdefined $VM_NAME || exit;
 	virsh console $DOMAIN;
 }
 
