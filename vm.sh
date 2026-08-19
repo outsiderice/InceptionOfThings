@@ -161,7 +161,7 @@ vm_create() {
 	local VM_RAM="4096";
 	
 	vm__domain_isdefined $VM_NAME 2>/dev/null && exit;
-	vm__clone_ami "$(vm__get_ami)" "$VM_IMG" "16G";
+	vm__clone_ami "$(vm__get_ami)" "$VM_IMG" "32G";
 	vm__keygen "$DOMAIN";
 	vm__cloudinit;
 	virt-install \
