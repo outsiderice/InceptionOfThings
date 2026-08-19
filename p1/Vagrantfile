@@ -1,85 +1,78 @@
-# Vagrantfile
-#
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
 
-ENV["LC_ALL"] = "en_US.UTF-8"
-
-Vagrant.require_version ">= 2.3"
-
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
 Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
 
-  #### Common configuration.
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "almalinux/9"
+  config.vm.box_version = "9.8.20260810"
 
-  # Automated Machine Image
-  #
-  config.vm.box = "cloud-image/debian-13"
-  config.vm.box_version = "20260722.2547.0"
-  # config.vm.box_url = ""
-  
-  # Network
-  #
-  config.vm.network "forwarded_port", guest: 22, host: 50022, id: "ssh", auto_correct: true
-  
-  # Synced folder
-  #
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  k3s_token = ENV['K3S_TOKEN'] || 'default-dev-token'
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # NOTE: This will enable public access to the opened port
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
 
-  # cloud-init
-  #
-  config.vm.cloud_init do |cloud_init|
-    cloud_init.content_type = "text/cloud-config"
-    cloud_init.inline = <<-EOF
-      timezone: Europe/Madrid
-    EOF
-  end
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine and only allow access
+  # via 127.0.0.1 to disable public access
+  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
 
-  # For libvirt provider
-  #
-  config.vagrant.plugins = "vagrant-libvirt"
-  config.vm.provider :libvirt do |libvirt|
-    libvirt.driver = "kvm"
-    libvirt.uri = "qemu:///session"
-    libvirt.memory = 512
-    libvirt.cpus = 1
-  end
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
 
-  # For QEMU provider (e.g. Apple Silicon)
-  #
-  # config.vagrant.plugins = "vagrant-qemu"
-  # config.vm.provider :qemu do |qemu|
-  #   qemu.machine = "virt,accel=hvf,highmem=off"
-  #   qemu.smp = "1"
-  #   qemu.memory = "512M"
-  #   qemu.ssh_auto_correct = true
-  # end
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
 
-  #### Machine (or node) specific configuration.
-
-  # Controller node
-  #
-  config.vm.define "#{ENV['USER']}S", primary: true do |c|
-    c.vm.hostname = "#{ENV['USER']}S"
-    c.vm.network "private_network", ip: "192.168.56.110"
-    c.vm.cloud_init do |cloud_init|
-      cloud_init.content_type = "text/cloud-config"
-      cloud_init.inline = <<-EOF
-        package_update: true
-      EOF
+  # Server machine
+  config.vm.define "amagnellS" do |control|
+    control.vm.hostname = "amagnellS"
+    control.vm.network "private_network", ip: "192.168.56.110"
+    # Config machine provider
+    control.vm.provider "libvirt" do |v|
+      v.memory = 1024
+      v.cpus = 1
     end
+
+    # k3s needs this port 
+    control.vm.network "forwarded_port", guest: 6443, host: 6443, host_ip: "127.0.0.1"
+
+    # Install k3s server mode
+    control.vm.provision "shell", inline: <<-SHELL
+      curl -sfL https://get.k3s.io | sh -s - server\
+          --write-kubeconfig-mode 644 --token #{k3s_token}
+      sudo mkdir -p /home/vagrant/.kube
+      sudo cp /etc/rancher/k3s/k3s.yaml /home/vagrant/.kube/config
+      sudo chown -R vagrant:vagrant /home/vagrant/.kube
+    SHELL
   end
 
-  # Worker node(s)
-  #
-  config.vm.define "#{ENV['USER']}SW" do |c|
-    c.vm.hostname = "#{ENV['USER']}SW"
-    c.vm.network "private_network", ip: "192.168.56.111"
-    c.vm.cloud_init do |cloud_init|
-      cloud_init.content_type = "text/cloud-config"
-      cloud_init.inline = <<-EOF
-        package_update: true
-        packages:
-          - tree
-      EOF
+  # Agent machine
+  config.vm.define "amagnellSW" do |control|
+    control.vm.hostname = "amagnellSW"
+    control.vm.network "private_network", ip: "192.168.56.111"
+    control.vm.provider "libvirt" do |v|
+      v.memory = 1024
+      v.cpus = 1
     end
+    
+    # Install k3s agent mode
+    control.vm.provision "shell", inline: <<-SHELL
+      curl -sfL https://get.k3s.io | sh -s - agent \
+          --server https://192.168.56.110:6443 --token #{k3s_token}
+    SHELL
   end
-
 end
+
