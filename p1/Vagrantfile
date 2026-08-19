@@ -1,10 +1,13 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+ENV["LC_ALL"] = "en_US.UTF-8"
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
+
 Vagrant.configure("2") do |config|
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
@@ -15,7 +18,6 @@ Vagrant.configure("2") do |config|
   config.vm.box = "almalinux/9"
   config.vm.box_version = "9.8.20260810"
 
-  k3s_token = ENV['K3S_TOKEN'] || 'default-dev-token'
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
@@ -36,19 +38,23 @@ Vagrant.configure("2") do |config|
   # your network.
   # config.vm.network "public_network"
 
+  # Common libvirt provider configuration.
+  config.vagrant.plugins = "vagrant-libvirt"
+  config.vm.provider :libvirt do |libvirt|
+    # libvirt.driver = "kvm"
+    # libvirt.uri = "qemu:///session"
+    libvirt.memory = 1024
+    libvirt.cpus = 1
+  end
+  
+  k3s_token = ENV['K3S_TOKEN'] || 'default-dev-token'
+
   # Server machine (AKA controller)
   config.vm.define "#{ENV['USER']}S" do |control|
     control.vm.hostname = "#{ENV['USER']}S"
     control.vm.network "private_network", ip: "192.168.56.110"
-    # Config machine provider
-    control.vm.provider "libvirt" do |v|
-      v.memory = 1024
-      v.cpus = 1
-    end
-
     # k3s needs this port 
     control.vm.network "forwarded_port", guest: 6443, host: 6443, host_ip: "127.0.0.1"
-
     # Install k3s server mode
     control.vm.provision "shell", inline: <<-SHELL
       curl -sfL https://get.k3s.io | sh -s - server\
@@ -63,16 +69,11 @@ Vagrant.configure("2") do |config|
   config.vm.define "#{ENV['USER']}SW" do |control|
     control.vm.hostname = "#{ENV['USER']}SW"
     control.vm.network "private_network", ip: "192.168.56.111"
-    control.vm.provider "libvirt" do |v|
-      v.memory = 1024
-      v.cpus = 1
-    end
-    
     # Install k3s agent mode
     control.vm.provision "shell", inline: <<-SHELL
       curl -sfL https://get.k3s.io | sh -s - agent \
           --server https://192.168.56.110:6443 --token #{k3s_token}
     SHELL
   end
-end
 
+end
