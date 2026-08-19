@@ -98,10 +98,15 @@ disable_root: true
 disable_root_opts: no-port-forwarding,no-agent-forwarding,no-X11-forwarding
 ssh_deletekeys: true
 ssh_quiet_keygen: true
+mounts:
+  - ["shared9p", "/mnt/$PROJECT_NAME", "9p", "trans=virtio,version=9p2000.L,nofail,x-mount.mkdir", "0", "0"]
 bootcmd:
   - printf "%s\n%s" "[Unit]" "After=cloud-init.target" | sudo systemctl edit sshd.service --stdin
   - systemctl daemon-reload
 runcmd:
+  - [ groupmod, -g, "$(id --group)", $USER ]
+  - [ usermod, -u, "$(id --user)", $USER ]
+  - chown $USER:$USER /mnt/$PROJECT_NAME
   - usermod -aG libvirt,kvm ${USER}
   - vagrant plugin install vagrant-libvirt
   - virsh net-destroy default
@@ -109,6 +114,7 @@ runcmd:
   - sed --in-place 's/192\.168/10\.0/g' /usr/share/libvirt/networks/default.xml
   - virsh net-define /usr/share/libvirt/networks/default.xml
   - virsh net-start default
+  - needrestart -r a
 final_message: Wubba Lubba dub-dub!
 EOF
 
@@ -164,6 +170,7 @@ vm_create() {
 		--vcpus "$VM_VCPUS" \
 		--cpu "host-passthrough,cache.mode=passthrough" \
 		--disk "path=$VM_IMG,bus=virtio,cache=none,io=native,discard=unmap" \
+		--filesystem "$(pwd),shared9p,mode=mapped" \
 		--cloud-init "user-data=$PROJECT_DIR/user-data.yaml,meta-data=$PROJECT_DIR/meta-data.yaml" \
 		--osinfo "ubuntu-lts-latest" \
 		--boot "uefi" \
