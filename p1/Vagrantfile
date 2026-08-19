@@ -36,9 +36,9 @@ Vagrant.configure("2") do |config|
   # your network.
   # config.vm.network "public_network"
 
-  # Server machine
-  config.vm.define "amagnellS" do |control|
-    control.vm.hostname = "amagnellS"
+  # Server machine (AKA controller)
+  config.vm.define "#{ENV['USER']}S" do |control|
+    control.vm.hostname = "#{ENV['USER']}S"
     control.vm.network "private_network", ip: "192.168.56.110"
     # Config machine provider
     control.vm.provider "libvirt" do |v|
@@ -59,9 +59,9 @@ Vagrant.configure("2") do |config|
     SHELL
   end
 
-  # Agent machine
-  config.vm.define "amagnellSW" do |control|
-    control.vm.hostname = "amagnellSW"
+  # Agent machine (AKA worker)
+  config.vm.define "#{ENV['USER']}SW" do |control|
+    control.vm.hostname = "#{ENV['USER']}SW"
     control.vm.network "private_network", ip: "192.168.56.111"
     control.vm.provider "libvirt" do |v|
       v.memory = 1024
