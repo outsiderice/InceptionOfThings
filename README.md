@@ -1,6 +1,13 @@
 # Inception-of-Things
 This project is an introduction to using kubernetes.
 
+## Usage
+Clone repository. 
+
+Run ./vm.sh create to create the machine. 
+
+Then run ./vm.sh console or ./vm.sh ssh to connect to the virtual machine. Note that to connect with ssh you have to wait until the key is generated which takes some time after running vm create.
+
 ## Pre-work
 What is k8s?
 An open source system for automating deployment, scaling, and management of containerized applications.
@@ -21,7 +28,7 @@ What is Argo CD?
 A declarative, GitOps continuous delivery tool for Kubernetes.
 
 ### Setting up the environment
-We decided to use cloud-init to be able to easily deploy our host machine with our preferred configuration, and specially as a more lightweight than other vm providers.
+We decided to use cloud-init to be able to easily deploy our host machine with our preferred configuration anywhere, and specially as a more lightweight than other virtual machine providers with GUIs.
 
 ### Monitoring and testing
 How do these technologies fail? What should I watch and how?
@@ -44,9 +51,10 @@ Set up 2 virtual machines with vagrant and install k3s in them.
 ### How to write a Vagrantfile according to modern practices
 
 ### K3s installation
-k3s installation was simple by the script provided by k3s and didn't have any issues.
+k3s installation was made easy by just using the script provided by k3s and we didn't encounter any issues.
 
 ## Optimization
+We are very limited in our work and production environment therefore optimization is a real worry.
 
 Our first working vagrantfile when doing vagrant up took:
 real	5m55.826s
